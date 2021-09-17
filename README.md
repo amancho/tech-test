@@ -36,12 +36,13 @@ http://tech.test (defined at .env)
  │   ├── Controllers
  │   │   ├── Controller.php
  │   │   └── HomeController.php
+ │   │   └── LiftController.php
  │   └── Middleware
  ├── Jobs
  ├── Listeners
  ├── Providers
  └── Services
-     ├── XXX.php
+     ├── LiftSimulatorService.php
 ```
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
