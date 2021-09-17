@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Services;
 
 use Carbon\Carbon;
@@ -8,9 +7,8 @@ use Exception;
 use function PHPUnit\Framework\throwException;
 
 /**
- * Service
+ * Service to simulate a several lift requests
  *
- * Class LiftSimulatorService
  * @package App\Services
  */
 class LiftSimulatorService
@@ -29,6 +27,7 @@ class LiftSimulatorService
     private $liftsData = [];
 
     private $sequences;
+    private $requests;
     private $log = [];
 
     public function __construct()
@@ -53,6 +52,7 @@ class LiftSimulatorService
     {
         try{
             $this->setParams($floors, $lifts, $hourStart, $hourEnd);
+
             $this->setLifts($this->lifts);
             $this->setSequences($this->hourStart, $this->hourEnd);
             $this->setRequests();
@@ -66,7 +66,7 @@ class LiftSimulatorService
     }
 
     /**
-     * Check and set params
+     * Check values and set params
      *
      * @param int $floors
      * @param int $lifts
@@ -205,15 +205,87 @@ class LiftSimulatorService
         foreach ($this->sequences as $currentSequence) {
             $this->setLog('SEQUENCE ' . $currentSequence->format('Y-m-d H:i'));
 
-
-            $this->checkLiftsPosition();
+            $this->checkRequests($currentSequence);
+            $this->logLiftsPosition();
         }
     }
 
-    private function checkLiftsPosition()
+    /**
+     * Check current sequence has a lift request
+     * @param \DateTime $sequence
+     * @return bool
+     */
+    private function checkRequests(\DateTime $sequence)
     {
-        foreach ($this->liftsData as $currentLift) {
-            $this->setLog('LIFT '. $currentLift['id'] . ' FLOOR :: ' . $currentLift['floor'] . ' TRIPS :: ' . $currentLift['trips']);
+        foreach ($this->requests as $request) {
+            if ($this->hasRequest($sequence)) {
+                $this->requestLift($request);
+            }
+        }
+    }
+
+    /**
+     * Check current sequence has a request
+     * @param $sequence
+     * @return bool
+     */
+    private function hasRequest($sequence): bool
+    {
+        // TODO
+        return true;
+    }
+
+    /**
+     * Make a lift request
+     * @param array $request
+     */
+    private function requestLift(array $request)
+    {
+        foreach ($this->liftsData as $lift) {
+            if ($this->isLiftAvailable($lift['id'])) {
+                $this->getLift($lift['id']);
+                $this->setLiftPosition($lift['id'], $request['destination']);
+            }
+        }
+    }
+    /**
+     * Check lift is available
+     */
+    private function isLiftAvailable(int $id): bool
+    {
+        return !empty($this->liftsData[$id]['available']);
+    }
+
+    /**
+     * Set lift not available
+     */
+    private function getLift(int $id)
+    {
+        $this->liftsData[$id]['available'] = false;
+    }
+
+    /**
+     * Set lift position and count trips
+     * @param int $id
+     * @param int $destination
+     */
+    private function setLiftPosition(int $id, int $destination)
+    {
+        if (!empty($this->liftsData[$id]) &&  !empty($this->liftsData[$id]['available'])
+          && ($this->liftsData[$id]['floor'] != $destination)) {
+
+            $trips =  abs($this->liftsData[$id]['floor'] - $destination);
+
+            $this->liftsData[$id]['floor'] = $destination;
+            $this->liftsData[$id]['trips'] =+ $trips;
+            $this->liftsData[$id]['available'] = true;
+        }
+    }
+
+    private function logLiftsPosition()
+    {
+        foreach ($this->liftsData as $lift) {
+            $this->setLog('LIFT '. $lift['id'] . ' FLOOR :: ' . $lift['floor'] . ' TRIPS :: ' . $lift['trips']);
         }
     }
 
@@ -234,7 +306,5 @@ class LiftSimulatorService
     {
         return $this->log;
     }
-
-
 
 }
