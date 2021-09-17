@@ -23,8 +23,7 @@ http://tech.test (defined at .env)
 - **app**  - Framework specific functionality, validator classes, service providers base models, etc
 - **app/Http/Controllers/LiftController** Lift controller
 - **app/Services** - All of my business logic for different Services.
-
-
+- **tests/Unit** - ServiceSimulatorTest.
 
 ### Application structure
 
@@ -38,9 +37,6 @@ http://tech.test (defined at .env)
  │   │   └── HomeController.php
  │   │   └── LiftController.php
  │   └── Middleware
- ├── Jobs
- ├── Listeners
- ├── Providers
  └── Services
      ├── LiftSimulatorService.php
 ```
