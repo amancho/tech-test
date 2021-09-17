@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use Carbon\Traits\Creator;
 use Exception;
 use function PHPUnit\Framework\throwException;
 
@@ -218,7 +219,7 @@ class LiftSimulatorService
     private function checkRequests(\DateTime $sequence)
     {
         foreach ($this->requests as $request) {
-            if ($this->hasRequest($sequence)) {
+            if ($this->hasRequest($sequence, $request)) {
                 $this->requestLift($request);
             }
         }
@@ -226,12 +227,27 @@ class LiftSimulatorService
 
     /**
      * Check current sequence has a request
-     * @param $sequence
+     * @param \DateTime $sequence current execution sequence
+     * @param array $request scheduled execution request
      * @return bool
      */
-    private function hasRequest($sequence): bool
+    private function hasRequest(\DateTime $sequence, array $request): bool
     {
-        // TODO
+        $currentSequence = new Carbon($sequence->format('Y-m-d H:i:s.u'), $sequence->getTimezone());
+        $startDate = new Carbon($request['startTime']->format('Y-m-d H:i:s.u'), $request['startTime']->getTimezone());
+        $endDate = new Carbon($request['endTime']->format('Y-m-d H:i:s.u'), $request['endTime']->getTimezone());
+
+        $isBetweenRequest = $currentSequence->between($startDate, $endDate);
+        if (!$isBetweenRequest) {
+            return false;
+        }
+
+        $frequency = (int) $request['frequency'];
+        $currentMinute = (int) $currentSequence->format('i');
+        if($currentMinute % $frequency != 0) {
+            return false;
+        }
+
         return true;
     }
 
