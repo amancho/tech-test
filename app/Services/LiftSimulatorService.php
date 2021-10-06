@@ -43,20 +43,23 @@ class LiftSimulatorService
      * @param int $lifts Number of lifts
      * @param string $hourStart DateTime start
      * @param string $hourEnd DateTime End
+     * @param array $requests Array of requests with frequency, floor origin, floor destination
      * @return array
      */
     public function execute(
         int $floors = self::DEFAULT_FLOORS,
         int $lifts = self::DEFAULT_LIFTS,
         string $hourStart = self::DEFAULT_START,
-        string $hourEnd = self::DEFAULT_END): array
+        string $hourEnd = self::DEFAULT_END,
+        array $requests
+    ): array
     {
         try{
             $this->setParams($floors, $lifts, $hourStart, $hourEnd);
 
             $this->setLifts($this->lifts);
             $this->setSequences($this->hourStart, $this->hourEnd);
-            $this->setRequests();
+            $this->setRequests($requests);
 
             $this->processSequences();
         }catch (\Exception $ex){
@@ -118,22 +121,15 @@ class LiftSimulatorService
     /**
      * Set interval requests
      */
-    private function setRequests()
+    private function setRequests(array $requests)
     {
-        $this->requests[] = $this->generateRequest('09:00', '11:00', 5, 0, 2);
-        $this->requests[] = $this->generateRequest('09:00', '10:00', 10, 1, 0);
-
-        $this->requests[] = $this->generateRequest('11:00', '18:20', 20, 0, 1);
-        $this->requests[] = $this->generateRequest('11:00', '18:20', 20, 0, 2);
-        $this->requests[] = $this->generateRequest('11:00', '18:20', 20, 0, 3);
-
-        $this->requests[] = $this->generateRequest('14:00', '15:00', 4, 1, 0);
-        $this->requests[] = $this->generateRequest('14:00', '15:00', 4, 2, 0);
-        $this->requests[] = $this->generateRequest('14:00', '15:00', 4, 3, 0);
+        foreach($requests as $request){
+            $this->requests[] = $this->generateRequest($request['startTime'], $request['endTime'], $request['frequency'], $request['origin'], $request['destination']);
+        }
     }
 
     /**
-     * @param string $startTime Start hour HH:ii
+     * @param string $startTifme Start hour HH:ii
      * @param string $endTime End hour HH:ii
      * @param int $frequency Frequency in minutes
      * @param int $origin Floor origin number
@@ -221,8 +217,11 @@ class LiftSimulatorService
         foreach ($this->requests as $request) {
             if ($this->hasRequest($sequence, $request)) {
                 $this->requestLift($request);
+                return true;
             }
         }
+
+        return false;
     }
 
     /**
