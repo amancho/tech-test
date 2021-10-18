@@ -1,0 +1,16 @@
+version: '3.6'
+services:
+  tech-test:
+    build: api
+    volumes:
+      - ../../tech-test:/var/www/html/tech-test
+  nginx-tech-test:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ../../tech-test:/var/www/html/tech-test
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./log:/var/log/tech-test
+    links:
+      - tech-test
