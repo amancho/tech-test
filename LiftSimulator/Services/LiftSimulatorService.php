@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace LiftSimulator\Services;
 
 use Carbon\Carbon;
 use Carbon\Traits\Creator;
 use Exception;
+use LiftSimulator\Domain\Lift;
+use LiftSimulator\Domain\LiftId;
 use function PHPUnit\Framework\throwException;
 
 /**
@@ -186,12 +188,8 @@ class LiftSimulatorService
     private function setLifts(int $lifts)
     {
         for ($i=0; $i < $lifts; $i++) {
-            $this->liftsData[$i] = [
-                'id' => $i,
-                'floor' => 0,
-                'available' => true,
-                'trips' => 0
-            ];
+            $id = uniqid();
+            $this->liftsData[$id] = new Lift(new LiftId($id), 0, true, 0);
         }
     }
 
@@ -257,19 +255,13 @@ class LiftSimulatorService
     private function requestLift(array $request)
     {
         foreach ($this->liftsData as $lift) {
-            if ($this->isLiftAvailable($lift['id'])) {
-                $this->getLift($lift['id']);
-                $this->setLiftPosition($lift['id'], $request['destination']);
+            if ($lift->isAvailable()) {
+                $lift->take();
+                $this->setLiftPosition($lift->id(), $request['destination']);
             }
         }
     }
-    /**
-     * Check lift is available
-     */
-    private function isLiftAvailable(int $id): bool
-    {
-        return !empty($this->liftsData[$id]['available']);
-    }
+
 
     /**
      * Set lift not available
@@ -281,26 +273,28 @@ class LiftSimulatorService
 
     /**
      * Set lift position and count trips
-     * @param int $id
+     * @param string $id
      * @param int $destination
      */
-    private function setLiftPosition(int $id, int $destination)
+    private function setLiftPosition(string $id, int $destination)
     {
-        if (!empty($this->liftsData[$id]) &&  !empty($this->liftsData[$id]['available'])
-          && ($this->liftsData[$id]['floor'] != $destination)) {
+        if (empty($this->liftsData[$id])) {
+            throw new Exception('Incorrect lift');
+        }
 
-            $trips =  abs($this->liftsData[$id]['floor'] - $destination);
+        $lift = $this->liftsData[$id];
 
-            $this->liftsData[$id]['floor'] = $destination;
-            $this->liftsData[$id]['trips'] =+ $trips;
-            $this->liftsData[$id]['available'] = true;
+        if (!$lift->isOnDestination($destination)) {
+            $lift->setTrips($destination);
+            $lift->setFloor($destination);
+            $lift->leave();
         }
     }
 
     private function logLiftsPosition()
     {
         foreach ($this->liftsData as $lift) {
-            $this->setLog('LIFT '. $lift['id'] . ' FLOOR :: ' . $lift['floor'] . ' TRIPS :: ' . $lift['trips']);
+            $this->setLog('LIFT '. $lift->id() . ' FLOOR :: ' . $lift->floor() . ' TRIPS :: ' . $lift->trips());
         }
     }
 

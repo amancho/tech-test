@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\LiftSimulatorService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use LiftSimulator\Services\LiftSimulatorService;
 
 class LiftController extends Controller
 {

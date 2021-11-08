@@ -2,7 +2,7 @@ JOB_NAME=?api
 PROJECT_NAME=${JOB_NAME}
 USER_ID:=$(shell id -u)
 GROUP_ID:=$(shell id -g)
-COMPOSE=sudo docker-compose -p "$(PROJECT_NAME)" -f docker/docker-compose.yml
+COMPOSE=docker-compose -p "$(PROJECT_NAME)" -f docker/docker-compose.yml
 
 .EXPORT_ALL_VARIABLES:
 DOCKER_UID=$(USER_ID)
@@ -20,12 +20,12 @@ reload:
 	$(COMPOSE) build
 	$(COMPOSE) up -d
 bash:
-	$(COMPOSE) run --rm api-videolibrary bash
+	$(COMPOSE) run --rm tech-test bash
 autoload:
-	$(COMPOSE) run --rm api-videolibrary composer dump-autoload
+	$(COMPOSE) run --rm tech-test composer dump-autoload
 db-create:
-	$(COMPOSE) run --rm api-videolibrary bin/console doc:sch:cre
+	$(COMPOSE) run --rm tech-test bin/console doc:sch:cre
 db-update-dump:
-	$(COMPOSE) run --rm api-videolibrary bin/console doc:sch:upd --dump-sql
+	$(COMPOSE) run --rm tech-test bin/console doc:sch:upd --dump-sql
 db-update-force:
-	$(COMPOSE) run --rm api-videolibrary bin/console doc:sch:upd --force
+	$(COMPOSE) run --rm tech-test bin/console doc:sch:upd --force
